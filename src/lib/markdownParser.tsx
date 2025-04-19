@@ -15,6 +15,18 @@ function parseMarkdownToAST(markdown: string) {
    
 }
 
+function toMarkdown(nodes) {
+    return nodes.map((node) => {
+      if (node.type === "text") return node.value;
+      if (node.type === "strong") return `**${toMarkdown(node.children)}**`;
+      if (node.type === "emphasis") return `*${toMarkdown(node.children)}*`;
+      if (node.type === "inlineCode") return `\`${node.value}\``;
+      if (node.type === "link") return `[${toMarkdown(node.children)}](${node.url})`;
+      return "";
+    }).join("");
+  }
+  
+
 
 function convertAstToTree(ast: any) {
     // 将 AST 转换为树结构
@@ -31,7 +43,7 @@ function convertAstToTree(ast: any) {
         if (child.type === "heading") {
             const newNode = {
                 type: child.type,
-                value: child.children[0].value,
+                value: `${"#".repeat(child.depth)} ${toMarkdown(child.children)}`,
                 children: [],
                 depth: child.depth
             }
@@ -49,7 +61,7 @@ function convertAstToTree(ast: any) {
         }else{
             currentNode.children.push({
                 type: child.type,
-                value: child.children[0].value,
+                value: toMarkdown(child.children),
                 children: []
             })
         }

@@ -1,6 +1,7 @@
 "use client";
 
 import { parseMarkdownToTree } from "../lib/markdownParser";
+import RichMarkdownNode from '../components/RichMarkdownNode'
 import { v4 as uuidv4 } from "uuid";
 
 import React, { useCallback, useEffect, useState } from "react";
@@ -53,12 +54,16 @@ const getLayoutedElements = (nodes, edges, direction = "TB") => {
         x: nodeWithPosition.x - nodeWidth / 2,
         y: nodeWithPosition.y - nodeHeight / 2,
       },
+      data: {
+        ...node.data,
+        direction, 
+      },
     };
 
     return newNode;
   });
 
-  return { nodes: newNodes, edges };
+  return { layoutedNodes: newNodes, layoutedEdges:edges };
 };
 
 function convertTreeToReactFlow(tree: any) {
@@ -83,6 +88,7 @@ function convertTreeToReactFlow(tree: any) {
 
       nodes.push({
         id: curId,
+        type: "markdownNode", 
         data: { label: node.value || "Undefined" },
       });
 
@@ -108,7 +114,7 @@ function convertTreeToReactFlow(tree: any) {
     }
   }
 
-  return { nodes, edges };
+  return { flowNodes: nodes, flowEdges: edges };
 }
 
 const Flow = ({ layoutedNodes, layoutedEdges }) => {
@@ -116,6 +122,20 @@ const Flow = ({ layoutedNodes, layoutedEdges }) => {
   const [edges, setEdges, onEdgesChange] = useEdgesState(layoutedEdges);
   const { fitView } = useReactFlow();
 
+  useEffect(() => {
+    setNodes(layoutedNodes);
+    setEdges(layoutedEdges);
+    
+    setTimeout(() => {
+      fitView({
+        includeHiddenNodes: false,
+        padding: 0.3,
+        duration: 500,
+        minZoom: 0.9,
+      });
+    }, 100);
+  }, [layoutedNodes, layoutedEdges]);
+  
   const onConnect = useCallback(
     (params) =>
       setEdges((eds) =>
@@ -128,7 +148,7 @@ const Flow = ({ layoutedNodes, layoutedEdges }) => {
   );
   const onLayout = useCallback(
     (direction) => {
-      const { nodes: layoutedNodes, edges: layoutedEdges } =
+      const { layoutedNodes, layoutedEdges } =
         getLayoutedElements(nodes, edges, direction);
 
       setNodes([...layoutedNodes]);
@@ -146,9 +166,27 @@ const Flow = ({ layoutedNodes, layoutedEdges }) => {
     [nodes, edges]
   );
 
+//   useEffect(() => {
+//     setNodes((prev) => 
+//         prev.map((node) => {
+//             const updated = layoutedNodes.find((n) => n.id === node.id);
+//             if (!updated || updated.data.label === node.data.label) return node;
+
+//             return {
+//                 ...node,
+//                 data: {
+//                   ...node.data,
+//                   label: updated.data.label,
+//                 },
+//             };
+//         })
+//     )
+//   }, [layoutedNodes])
+
   return (
     <ReactFlow
       nodes={nodes}
+      nodeTypes={{ markdownNode: RichMarkdownNode }}
       edges={edges}
       onNodesChange={onNodesChange}
       onEdgesChange={onEdgesChange}
@@ -176,8 +214,8 @@ const Flow = ({ layoutedNodes, layoutedEdges }) => {
       style={{ backgroundColor: "#F7F9FB" }}
     >
       <Panel position="top-right">
-        <button onClick={() => onLayout("TB")}>vertical layout</button>
-        <button onClick={() => onLayout("LR")}>horizontal layout</button>
+        <button onClick={() => onLayout("TB")} className="border rounded-2xl border-grey-200 mr-2 p-2">Vertical Layout</button>
+        <button onClick={() => onLayout("LR")} className="border rounded-2xl border-grey-200 ml-2 p-2">Horizontal Layout</button>
       </Panel>
       <MiniMap
         className="minimap dark:bg-dt-surface-a10 rounded-2xl border border-t-0 border-l-0 border-gray-200 dark:border-dt-surface-a30"
@@ -191,13 +229,11 @@ const Flow = ({ layoutedNodes, layoutedEdges }) => {
 
 // 假设 MarkdownTree 接受 markdown 字符串作为 prop
 export default function MarkdownTree({ markdown }: { markdown: string }) {
+  
   const tree = parseMarkdownToTree(markdown);
 
-  const { nodes, edges } = convertTreeToReactFlow(tree);
-  const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
-    nodes,
-    edges
-  );
+  const { flowNodes, flowEdges } = convertTreeToReactFlow(tree);
+  const { layoutedNodes, layoutedEdges } = getLayoutedElements(flowNodes,flowEdges);
 
   return (
     <div style={{ width: "100%", height: "100%" }}>

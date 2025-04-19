@@ -61,12 +61,6 @@ Thank you for reading this detailed Markdown example.
 `);
     const [selectedTab, setSelectedTab] = React.useState<"write" | "preview">("write");
 
-    // useEffect(() => {
-    //     // I need to call the function to transcript the markdown to tree
-    //     // const tree = parseMarkdownToTree(value);
-        
-
-    // }, [value])
 
     return (
         <div className="flex h-screen">
@@ -87,7 +81,18 @@ Thank you for reading this detailed Markdown example.
                             
                         }}
                     />
+                    
                 </div>
+                
+                {/* <div className="flex">
+                    <button className="ml-auto mr-4 min-h-[20px] text-lg font-bold text-indigo-500
+                     border-4 border-purple-200 rounded-md border-b-indigo-500"
+                     onClick={() => { parseMarkdownToTree(value)}}
+                    >
+                        Convert to Tree
+                    </button>
+                </div> */}
+                
             </div>
 
             <div className="w-1/2 p-2 flex h-screen"> 
