@@ -59,7 +59,49 @@ body {
   display: none !important;
 }
 
+.react-flow__node-markdownNode {
+  position: relative;
+  overflow: hidden;
+  background-color: white;
+  z-index: 10;
+}
 
+/* 添加流光旋转圈 */
+.react-flow__node-markdownNode:hover::before {
+  content: '';
+  display: block;
+  position: absolute;
+  width: 200%;
+  height: 200%;
+  transform-origin: center center;
+  background-image: conic-gradient(
+  transparent,
+  #6366f1 10%,
+  #8b5cf6 20%,
+  #3b82f6 30%,
+  transparent 50%
+  );
+  animation: rotate 4s linear infinite;
+  opacity: 0.5;
+  z-index: -2; 
+  /* transform-origin: center center; */
+  
+}
+
+/* 可选的：发光内边框 */
+.react-flow__node-markdownNode:hover::after {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  background: white;
+  z-index: -1;
+}
+
+@keyframes rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
 
 
 

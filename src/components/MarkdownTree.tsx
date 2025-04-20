@@ -23,8 +23,8 @@ import "@xyflow/react/dist/style.css";
 
 const dagreGraph = new dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
 
-const nodeWidth = 172;
-const nodeHeight = 36;
+const nodeWidth = 200;
+const nodeHeight = 120;
 
 const getLayoutedElements = (nodes, edges, direction = "TB") => {
   const isHorizontal = direction === "LR";
@@ -32,7 +32,7 @@ const getLayoutedElements = (nodes, edges, direction = "TB") => {
 
   nodes.forEach((node) => {
     const textLength = node.data.label?.length || 10;
-    const estimatedHeight = Math.min(200, 36 + Math.ceil(textLength / 30) * 18);
+    const estimatedHeight = Math.min(200, 36 + Math.ceil(textLength / 30) * 48);
     dagreGraph.setNode(node.id, { width: nodeWidth, height: estimatedHeight });
   });
 
@@ -131,7 +131,7 @@ const Flow = ({ layoutedNodes, layoutedEdges }) => {
         includeHiddenNodes: false,
         padding: 0.3,
         duration: 500,
-        minZoom: 0.9,
+        minZoom: 0.8,
       });
     }, 100);
   }, [layoutedNodes, layoutedEdges]);
@@ -159,7 +159,7 @@ const Flow = ({ layoutedNodes, layoutedEdges }) => {
           includeHiddenNodes: false,
           padding: 0.3,
           duration: 500,
-          minZoom: 0.9,
+          minZoom: 0.8,
         });
       }, 100);
     },
