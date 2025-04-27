@@ -62,7 +62,7 @@ body {
 .react-flow__node-markdownNode {
   position: relative;
   overflow: hidden;
-  background-color: white;
+  background-color: transparent;
   z-index: 10;
 }
 
@@ -93,7 +93,7 @@ body {
   content: '';
   position: absolute;
   inset: 4px;
-  background: white;
+  background: transparent;
   z-index: -1;
 }
 
@@ -104,4 +104,6 @@ body {
 }
 
 
-
+.react-flow__panel {
+  opacity: 1 !important;
+}

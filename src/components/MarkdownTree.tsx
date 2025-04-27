@@ -2,9 +2,8 @@
 
 import { parseMarkdownToTree } from "../lib/markdownParser";
 import RichMarkdownNode from '../components/RichMarkdownNode'
-import { v4 as uuidv4 } from "uuid";
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState, type ChangeEventHandler, useRef } from "react";
 import {
   Background,
   ReactFlow,
@@ -15,7 +14,9 @@ import {
   useEdgesState,
   ReactFlowProvider,
   MiniMap,
+  Controls,
   useReactFlow,
+  type ColorMode
 } from "@xyflow/react";
 import dagre from "@dagrejs/dagre";
 
@@ -120,11 +121,14 @@ function convertTreeToReactFlow(tree: any) {
   return { flowNodes: nodes, flowEdges: edges };
 }
 
-const Flow = ({ layoutedNodes, layoutedEdges }) => {
+const Flow = ({ layoutedNodes, layoutedEdges, colorMode, setColorMode }) => {
   const [nodes, setNodes, onNodesChange] = useNodesState(layoutedNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(layoutedEdges);
   const { fitView } = useReactFlow();
-  const prevNodeIds = React.useRef<string[]>([]);
+  const prevNodeIds = useRef<string[]>([]);
+  const buttonClass = (colorMode: ColorMode) =>
+    `border rounded-2xl  p-2 ${colorMode === 'light' ? 'text-black bg-white border-gray' : 'text-white bg-black border-gray-200'}`;
+  
 
   useEffect(() => {
     setNodes(layoutedNodes);
@@ -178,6 +182,10 @@ const Flow = ({ layoutedNodes, layoutedEdges }) => {
     [nodes, edges]
   );
 
+  const onChange: ChangeEventHandler<HTMLSelectElement> = (evt) => {
+    setColorMode(evt.target.value as ColorMode);
+  };
+ 
 //   useEffect(() => {
 //     setNodes((prev) => 
 //         prev.map((node) => {
@@ -198,7 +206,7 @@ const Flow = ({ layoutedNodes, layoutedEdges }) => {
   return (
     <ReactFlow
       nodes={nodes}
-      nodeTypes={{ markdownNode: RichMarkdownNode }}
+      nodeTypes={{ markdownNode: (nodeProps) => <RichMarkdownNode {...nodeProps} colorMode={colorMode} />}}
       edges={edges}
       onNodesChange={onNodesChange}
       onEdgesChange={onEdgesChange}
@@ -223,18 +231,28 @@ const Flow = ({ layoutedNodes, layoutedEdges }) => {
       }}
       nodesDraggable={true}
       elementsSelectable={true}
+      colorMode={colorMode}
       style={{ backgroundColor: "#F7F9FB" }}
     >
+
       <Panel position="top-right">
-        <button onClick={() => onLayout("TB")} className="border rounded-2xl border-grey-200 mr-2 p-2">Vertical Layout</button>
-        <button onClick={() => onLayout("LR")} className="border rounded-2xl border-grey-200 ml-2 p-2">Horizontal Layout</button>
+        <button onClick={() => onLayout("TB")} className={`${buttonClass(colorMode)} mr-2`}>Vertical Layout</button>
+        <button onClick={() => onLayout("LR")} className={`${buttonClass(colorMode)} ml-2 mr-2 `}>Horizontal Layout</button>
+
+        <select onChange={onChange} data-testid="colormode-select"className={`${buttonClass(colorMode)} ml-2 `}>
+          <option value="dark">dark</option>
+          <option value="light">light</option>
+          <option value="system">system</option>
+        </select>
       </Panel>
+      
       <MiniMap
-        className="minimap dark:bg-dt-surface-a10 rounded-2xl border border-t-0 border-l-0 border-gray-200 dark:border-dt-surface-a30"
+        className="minimap dark:bg-dt-surface-a10 rounded-2xl border border-gray-200 dark:border-dt-surface-a30"
         nodeColor="#A5A6F6"
         maskColor="rgba(0, 0, 0, 0.1)"
       />
-      <Background color="#03090f" />
+      <Controls />
+      <Background />
     </ReactFlow>
   );
 };
@@ -246,12 +264,14 @@ export default function MarkdownTree({ markdown }: { markdown: string }) {
 
   const { flowNodes, flowEdges } = convertTreeToReactFlow(tree);
   const { layoutedNodes, layoutedEdges } = getLayoutedElements(flowNodes,flowEdges);
+  const [colorMode, setColorMode] = useState<ColorMode>('dark');
 
   return (
     <div style={{ width: "100%", height: "100%" }}>
       {/* <ReactFlow nodes={nodes} edges={edges} /> */}
       <ReactFlowProvider>
-        <Flow layoutedNodes={layoutedNodes} layoutedEdges={layoutedEdges} />
+        <Flow layoutedNodes={layoutedNodes} layoutedEdges={layoutedEdges} colorMode={colorMode} // 传进去
+          setColorMode={setColorMode} />
       </ReactFlowProvider>
     </div>
   );

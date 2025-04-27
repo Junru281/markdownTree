@@ -18,10 +18,13 @@ interface CodeProps {
 
 
 
-export default function RichMarkdownNode({ data }) {
+export default function RichMarkdownNode({ data, colorMode }) {
     const direction = data?.direction
+    
   return (
-    <div className="p-2 bg-transparent shadow-md max-w-[270px] break-words">
+    <div className={`p-2 inset-shadow-sm ring-4 max-w-[270px] break-words ${
+      colorMode === 'dark' ? 'bg-black text-white' : 'bg-white text-black'
+    }`}>
       <Handle type="target" position={direction == 'TB'? Position.Top: Position.Left} />
       <div className="prose prose-sm">
         <ReactMarkdown
@@ -84,7 +87,7 @@ export default function RichMarkdownNode({ data }) {
             },
             
             p: ({ children }) => (
-              <p className="mb-3 last:mb-0 text-gray-700 dark:text-gray-300 leading-relaxed">{children}</p >
+              <p className="mb-3 last:mb-0 text-gray-700 dark:text-gray-400 leading-relaxed">{children}</p >
             ),
             
             a: ({ node, ...props }) => (
@@ -103,7 +106,7 @@ export default function RichMarkdownNode({ data }) {
               <ol className="list-decimal pl-5 mb-4 space-y-1">{children}</ol>
             ),
             li: ({ children }) => (
-              <li className="mb-1 text-left">{children}</li>
+              <li className="mb-1 text-left text-gray-700 dark:text-gray-400">{children}</li>
             ),
             
             blockquote: ({ children }) => (
