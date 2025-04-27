@@ -23,8 +23,8 @@ import "@xyflow/react/dist/style.css";
 
 const dagreGraph = new dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
 
-const nodeWidth = 200;
-const nodeHeight = 120;
+const nodeWidth = 250;
+const nodeHeight = 200;
 
 const getLayoutedElements = (nodes, edges, direction = "TB") => {
   const isHorizontal = direction === "LR";
@@ -33,7 +33,8 @@ const getLayoutedElements = (nodes, edges, direction = "TB") => {
   nodes.forEach((node) => {
     const textLength = node.data.label?.length || 10;
     const estimatedHeight = Math.min(200, 36 + Math.ceil(textLength / 30) * 48);
-    dagreGraph.setNode(node.id, { width: nodeWidth, height: estimatedHeight });
+    const estimatedWidth = isHorizontal ? nodeWidth + Math.min(250, textLength * 8) : nodeWidth;
+    dagreGraph.setNode(node.id, { width: estimatedWidth, height: estimatedHeight });
   });
 
   edges.forEach((edge) => {
@@ -71,11 +72,12 @@ function convertTreeToReactFlow(tree: any) {
   const edges: any[] = [];
   const queue: any[] = [];
   // 为了删除一开始的dummy root
-  for (let node of tree.children) {
+  for (let i = 0; i< tree.children.length; i++) {
     const newNode = {
-      node: node,
+      node: tree.children[i],
       depth: 0,
       parentId: null,
+      path: `${i}`
     };
     queue.push(newNode);
   }
@@ -83,20 +85,20 @@ function convertTreeToReactFlow(tree: any) {
   while (queue.length > 0) {
     const size = queue.length;
     for (let i = 0; i < size; i++) {
-      const { node, depth, parentId } = queue.shift();
-      const curId = uuidv4();
+      const { node, depth, parentId, path } = queue.shift();
 
       nodes.push({
-        id: curId,
+        id: path,
         type: "markdownNode", 
-        data: { label: node.value || "Undefined" },
+        data: { label: node.raw || node.value || "Undefined" },
       });
 
       if (parentId) {
         edges.push({
-          id: `e${parentId}-${curId}`,
+          id: `e${parentId}-${path}`,
           source: parentId,
-          target: curId,
+          target: path,
+          type: "smoothstep",  // To ZSW：我发现为什么smoothStep不生效了
         });
       }
 
@@ -107,7 +109,8 @@ function convertTreeToReactFlow(tree: any) {
           queue.push({
             node: childNode,
             depth: depth + 1,
-            parentId: curId,
+            parentId: path,
+            path: `${path}-${index}`,
           });
         });
       }
@@ -121,19 +124,28 @@ const Flow = ({ layoutedNodes, layoutedEdges }) => {
   const [nodes, setNodes, onNodesChange] = useNodesState(layoutedNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(layoutedEdges);
   const { fitView } = useReactFlow();
+  const prevNodeIds = React.useRef<string[]>([]);
 
   useEffect(() => {
     setNodes(layoutedNodes);
     setEdges(layoutedEdges);
+    // 只在节点结构变化时 fitView
+    const currentNodeIds = layoutedNodes.map((n => n.id)).sort()
+    const prevIds = prevNodeIds.current
+    // 这里不单纯只用length 比较的原因是: 如果结构，顺序变化，其实也应该冲洗fitview
+    const isStructureChanged = currentNodeIds.length != prevIds.length || currentNodeIds.some((id, i) => id != prevIds[i])
+    if (isStructureChanged){
+      setTimeout(() => {
+        fitView({
+          includeHiddenNodes: false,
+          padding: 0.3,
+          duration: 500,
+          minZoom: 0.5,
+        });
+      }, 100);
+      prevNodeIds.current = currentNodeIds
+    }
     
-    setTimeout(() => {
-      fitView({
-        includeHiddenNodes: false,
-        padding: 0.3,
-        duration: 500,
-        minZoom: 0.8,
-      });
-    }, 100);
   }, [layoutedNodes, layoutedEdges]);
   
   const onConnect = useCallback(

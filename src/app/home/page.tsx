@@ -48,6 +48,9 @@ The analysis section covers in-depth information and data.
   - Observation one.
   - Observation two.
 
+1. Happy
+2. This is an order list
+
 ### Subsection 2.1: Data and Metrics
 
 This subsection provides quantitative data and metrics used to analyze the subject.

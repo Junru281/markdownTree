@@ -21,7 +21,7 @@ interface CodeProps {
 export default function RichMarkdownNode({ data }) {
     const direction = data?.direction
   return (
-    <div className="p-2 bg-transparent shadow-md max-w-[180px]">
+    <div className="p-2 bg-transparent shadow-md max-w-[270px] break-words">
       <Handle type="target" position={direction == 'TB'? Position.Top: Position.Left} />
       <div className="prose prose-sm">
         <ReactMarkdown
@@ -103,7 +103,7 @@ export default function RichMarkdownNode({ data }) {
               <ol className="list-decimal pl-5 mb-4 space-y-1">{children}</ol>
             ),
             li: ({ children }) => (
-              <li className="mb-1">{children}</li>
+              <li className="mb-1 text-left">{children}</li>
             ),
             
             blockquote: ({ children }) => (

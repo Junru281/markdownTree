@@ -22,9 +22,25 @@ function toMarkdown(nodes) {
       if (node.type === "emphasis") return `*${toMarkdown(node.children)}*`;
       if (node.type === "inlineCode") return `\`${node.value}\``;
       if (node.type === "link") return `[${toMarkdown(node.children)}](${node.url})`;
+      if (node.type === "list")  return toListMarkdown(node.children, {ordered: node.ordered})
+      if (node.type === 'listItem') return toMarkdown(node.children)
+      if (node.type === "paragraph") return toMarkdown(node.children);
       return "";
-    }).join("");
+    }).join("\n");
   }
+
+  function toListMarkdown(nodes, { ordered }) {
+    return nodes.map((node, idx) => {
+      if (node.type === "listItem") {
+        const content = toMarkdown(node.children);
+        const prefix = ordered ? `${idx + 1}. ` : '- ';
+        const lines = content.split('\n');
+       return prefix + lines[0] + (lines.length > 1 ? '\n' + lines.slice(1).map(line => '  ' + line).join('\n') : '');
+      }
+      return "";
+    }).join("\n");
+  }
+
   
 
 
@@ -61,7 +77,8 @@ function convertAstToTree(ast: any) {
         }else{
             currentNode.children.push({
                 type: child.type,
-                value: toMarkdown(child.children),
+                // 搞了我两个小时，原来是在这里的时候不应该传child.children,而是应该直接放child
+                value: toMarkdown([child]),
                 children: []
             })
         }
